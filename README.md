@@ -8,4 +8,4 @@ Dispatches tasks from multiple sources into multiple executors with guaranteed o
 * Executor: threads to execute task.
 
 Execution order guarantee:
-* All tasks with synchronizer overlap will be executed with its incoming order.
+* All tasks with one or more overlapping synchronizer will be executed with its incoming order.
