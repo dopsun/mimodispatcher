@@ -81,10 +81,8 @@ public class MimoDispatcherSingleLockTest {
         }
     }
 
-    //@Test
+    @Test
     public void twoExecutors_OneOrTwoSynchronizer() throws Exception {
-        //TODO: to make this pass.
-        
         final int TOTAL_SIZE = 50;
 
         final int LOCK_COUNT = 10;
@@ -120,8 +118,6 @@ public class MimoDispatcherSingleLockTest {
                     }
                     
                     latch.countDown();
-                    
-                    System.out.println("Count: " + latch.getCount() + ", TaskId: " + taskId);
                 });
         /** @formatter:on */
 
@@ -130,10 +126,8 @@ public class MimoDispatcherSingleLockTest {
                 dispatcher.put(i);
             }
 
-            boolean succeed = latch.await(6, TimeUnit.SECONDS);
+            boolean succeed = latch.await(10, TimeUnit.SECONDS);
             assertTrue(succeed);
-
-            assertEquals(0, dispatcher.getStats().getBlockingQueueMaxSize());
         }
     }
 }

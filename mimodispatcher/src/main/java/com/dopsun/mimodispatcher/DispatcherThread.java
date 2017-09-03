@@ -47,7 +47,7 @@ public class DispatcherThread<T> implements AutoCloseable {
             @Override
             protected void run() throws Exception {
                 while (this.isRunning()) {
-                    tryDispatchOnce(1, TimeUnit.SECONDS);
+                    tryDispatchOnce(100, TimeUnit.MILLISECONDS);
 
                     context.notifyBlockingQueueSizeChanged(blockedTaskQueue.size());
                 }
@@ -70,8 +70,19 @@ public class DispatcherThread<T> implements AutoCloseable {
     }
 
     private void tryDispatchOnce(long timeout, TimeUnit unit) throws InterruptedException {
-        boolean bqDispatching = context.getAndResetBlockingQueueDispatching();
-        if (bqDispatching) {
+        // Always checking blocked queue size and dispatching if available.
+        //
+        // Assume the dispatcher always much faster than the executor, this should not impact
+        // overall throughput, and size of blocked queue should be controlled anyway.
+        //
+        // This can be potentially improved based on hits triggered from executor thread.
+        // Since the executor threads are triggering in separate threads, care should be
+        // taken to ensure that there are no split-brain events put the blocked queue forever.
+        //
+        // boolean bqDispatching = context.getAndResetBlockingQueueDispatching();
+        //
+
+        if (blockedTaskQueue.size() > 0) {
             dispatchBlockingQueue();
         }
 
@@ -109,7 +120,11 @@ public class DispatcherThread<T> implements AutoCloseable {
             if (blocked) {
                 for (Object sync : syncList) {
                     tempSynchronizers.compute(sync, (k, v) -> {
-                        return v + 1;
+                        if (v == null) {
+                            return 1L;
+                        } else {
+                            return v + 1;
+                        }
                     });
                 }
 

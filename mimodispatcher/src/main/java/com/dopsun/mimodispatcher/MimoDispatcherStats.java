@@ -18,6 +18,11 @@ public interface MimoDispatcherStats {
     int getBlockingQueueMaxSize();
 
     /**
+     * @return the last size of blocking queue.
+     */
+    int getBlockingQueueLastSize();
+
+    /**
      * @return the maximum size of single executor queue.
      */
     int getExecutorQueueMaxSize();

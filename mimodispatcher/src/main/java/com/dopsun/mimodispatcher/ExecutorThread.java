@@ -54,7 +54,7 @@ class ExecutorThread<T> implements AutoCloseable {
             @Override
             protected void run() throws Exception {
                 while (this.isRunning()) {
-                    tryExecuteOnce(1, TimeUnit.SECONDS);
+                    tryExecuteOnce(100, TimeUnit.MILLISECONDS);
 
                     context.notifyExecutorQueueSizeChanged(ExecutorThread.this, taskQueue.size());
                 }

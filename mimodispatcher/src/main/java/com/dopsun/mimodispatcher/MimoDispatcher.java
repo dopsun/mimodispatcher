@@ -105,6 +105,7 @@ public final class MimoDispatcher<T> implements AutoCloseable {
     }
 
     final class MimoDispatcherStatsImpl implements MimoDispatcherStats, AutoCloseable {
+        private final AtomicInteger blockingQueueLastSize = new AtomicInteger();
         private final AtomicInteger blockingQueueMaxSize = new AtomicInteger();
         private final AtomicInteger executorQueueMaxSize = new AtomicInteger();
 
@@ -119,6 +120,7 @@ public final class MimoDispatcher<T> implements AutoCloseable {
         }
 
         public void notifyBlockingQueueSizeChanged(int newSize) {
+            blockingQueueLastSize.set(newSize);
             blockingQueueMaxSize.getAndUpdate(old -> {
                 return Math.max(old, newSize);
             });
@@ -130,6 +132,11 @@ public final class MimoDispatcher<T> implements AutoCloseable {
             });
 
             executorQueueSizes.put(executor, newSize);
+        }
+
+        @Override
+        public int getBlockingQueueLastSize() {
+            return blockingQueueLastSize.get();
         }
 
         @Override
