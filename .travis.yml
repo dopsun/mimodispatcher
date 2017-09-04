@@ -13,6 +13,6 @@ env:
   - secure: RPinLHrcr5GVhh98TXliPn3yb36cS9w5oJlOyXdmhSmumj5C16b9s40gqQcgThAbyT/9ryTBErbPvAAxvpk3VotfWN8W5bFfNrrkbY/zStpF8Jb/DtYEoz3soEwhl1iI2DP7ebu4cHBPNK7L7WY9QYgIP25uErjYAAIa7XWNpdu0PcBlubvw/YeitaulwabloW1HxzKSWtf853+g1H+1OPIWtZ+ehaqfBW4lNg6hCMfqTtJOOBjSUT3m6BmGkjZ6Yk5I/Asr0RIw6/jLuA4D5M4AhhsP7xvEbrLVDjDRTPUmm6kLZo/hM0M6g7gr4AGDAgZNTp2FFzgm+RPNQLg+0U6Ezj0EMTA9obHpodHJuc4A21h3/sOfrkTZ0GNHoAWGLkZJdZMXyEPAPhVI52iYBJGaaWXbMYKJVqdJigTTzdHjMsrmkGWYjcfEeFkxQTKikBAZb/MSGkBpltf2NSXa3ranK3o7ZhdiU5b3mpQ2R7XrAoLFFYDAmEO0+Po66+dTUIT51likDZe+8lr327AgTS5Nn3//TyGUb34c6emlUnEz3VF02AI0PcW6ZJLymO35yvgyzHjhfMmgbKxLerVqhtdnQZJclECkWP+OKSryWoYCk05YoEMWPRLyqtHtMYZ5NQUpbDF17dRgxtKssxTulvMC/Uen7gt50cf1HNre7Y0=
 install:
   -
-#script:
-#- bash travis-deploy-sonatype/scripts/deploy.sh e4ca999fbcb4 travis/dopsun.asc.enc
-#  travis/settings.xml
+script:
+- bash travis-deploy-sonatype/scripts/deploy.sh e4ca999fbcb4 travis/dopsun.asc.enc
+  travis/settings.xml
