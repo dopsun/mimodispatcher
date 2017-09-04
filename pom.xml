@@ -6,6 +6,30 @@
 	<version>0.1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>MimoDispatcher Parent POM</name>
+	<description>Dispatcher for multiple input, multiple output task execution with guaranteed sequence and synchronizers.</description>
+	<url>https://github.com/dopsun/mimodispatcher</url>
+
+	<licenses>
+		<license>
+			<name>The Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Dop Sun</name>
+			<email>sunht@dopsun.com</email>
+			<organization>dopsun.com</organization>
+			<organizationUrl>https://github.com/dopsun</organizationUrl>
+		</developer>
+	</developers>
+
+	<scm>
+		<connection>scm:git:git@github.com:dopsun/mimodispatcher.git</connection>
+		<developerConnection>scm:git:ssh://github.com:dopsun/mimodispatcher.git</developerConnection>
+		<url>http://github.com/dopsun/mimodispatcher/tree/master</url>
+	</scm>
 
 	<properties>
 		<guava.version>21.0</guava.version>
@@ -22,6 +46,10 @@
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 	</properties>
 
+	<modules>
+		<module>mimodispatcher</module>
+	</modules>
+
 	<dependencies>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
@@ -30,6 +58,7 @@
 			<optional>true</optional>
 		</dependency>
 	</dependencies>
+
 
 	<dependencyManagement>
 		<dependencies>
@@ -59,7 +88,76 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
-	<modules>
-		<module>mimodispatcher</module>
-	</modules>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>3.0.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.4</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<failOnError>false</failOnError>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.7</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>ossrh</serverId>
+					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					<autoReleaseAfterClose>true</autoReleaseAfterClose>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.6</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>
