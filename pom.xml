@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.dopsun.mimodispatcher</groupId>
 	<artifactId>mimodispatcher-parent</artifactId>
-	<version>0.1.0</version>
+	<version>0.2.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>MimoDispatcher Parent POM</name>
 	<description>Dispatcher for multiple input, multiple output task execution with guaranteed sequence and synchronizers.</description>
