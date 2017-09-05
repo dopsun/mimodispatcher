@@ -1,4 +1,6 @@
 # MimoDispatcher
+[![Build Status](https://travis-ci.org/dopsun/mimodispatcher.svg?branch=develop)](https://travis-ci.org/dopsun/mimodispatcher)
+
 Dispatches tasks from multiple sources into multiple executors with guaranteed order and synchronizations.
 
 # Terms
