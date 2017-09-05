@@ -13,6 +13,6 @@ Dispatches tasks from multiple sources into multiple executors with guaranteed o
 
 For example:
 
-* If A1 has synchronizer for "S001", and A2 has synchronizer of "S002", then A2 could be executed before A1.
-* If A1 has synchronizer for "S001", and A2 has synchronizer of "S001" as well, then A2 is guaranteed to be executed after A1 finished  since both have synchronizer "S001".
-* If A1 has synchronizer for "S001" and "S002", and A2 has synchronizer of "S001" and "S003", then A2 is guaranteed to be executed after A1 finished since both have synchronizer "S001".
+* If task T1 has synchronizer S1, and T2 has synchronizer S2, then T2 could be executed before T1.
+* If task T1 has synchronizer S1, and T2 has synchronizer S1 as well, then T2 is guaranteed to be executed after T1 finished  since both have synchronizer "S1".
+* If task T1 has synchronizer S1 and S2, and T2 has synchronizer of S1 and S3, then T2 is guaranteed to be executed after T1 finished since both have synchronizer "S1".
