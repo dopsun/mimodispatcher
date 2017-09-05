@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -42,6 +41,7 @@ public final class MimoDispatcher<T> implements AutoCloseable {
 
     private final TaskExecutor<T> taskExecutor;
     private final TaskSynchronizerResolver<T> taskSynchronizerResolver;
+    private final TaskExecutorSelector taskExecutorSelector;
 
     private final DispatcherThread<T> dispatcherThread;
     private final List<ExecutorThread<T>> executorThreadList;
@@ -66,6 +66,12 @@ public final class MimoDispatcher<T> implements AutoCloseable {
             this.taskSynchronizerResolver = t -> Collections.emptyList();
         } else {
             this.taskSynchronizerResolver = builder.taskSynchronizerResolver;
+        }
+
+        if (builder.taskExecutorSelector == null) {
+            this.taskExecutorSelector = new RandomTaskExecutorSelector();
+        } else {
+            this.taskExecutorSelector = builder.taskExecutorSelector;
         }
 
         this.blockingQueueMaxTaskSize = builder.blockingQueueMaxTaskSize;
@@ -174,10 +180,8 @@ public final class MimoDispatcher<T> implements AutoCloseable {
         }
     }
 
-    final class MimoDispatcherContext
-            implements DispatcherThreadContext<T>, ExecutorThreadContext<T> {
-        private final Random random = new Random();
-
+    final class MimoDispatcherContext implements DispatcherThreadContext<T>,
+            ExecutorThreadContext<T>, TaskExecutorSelectorContext {
         private final AtomicBoolean blockingQueueDispatching = new AtomicBoolean(true);
 
         @Override
@@ -233,39 +237,44 @@ public final class MimoDispatcher<T> implements AutoCloseable {
             blockingQueueDispatching.set(true);
         }
 
-        private void putToExecutor(T task) throws InterruptedException {
-            int executorId = random.nextInt(executorThreadList.size());
+        private DispatchResult putToExecutor(T task) throws InterruptedException {
+            int executorId = taskExecutorSelector.apply(this);
+            if (executorId < 0) {
+                return DispatchResult.ALL_EXECUTORS_BUSY;
+            }
+
             executorThreadList.get(executorId).put(task);
+
+            return DispatchResult.OK;
         }
 
-        private void putToExecutor(T task, Object synchronizer) throws InterruptedException {
+        private DispatchResult putToExecutor(T task, Object synchronizer)
+                throws InterruptedException {
             Objects.requireNonNull(task);
             Objects.requireNonNull(synchronizer);
 
             for (ExecutorThread<T> et : executorThreadList) {
                 if (et.hasSynchronizer(synchronizer)) {
                     et.put(task);
-                    return;
+                    return DispatchResult.OK;
                 }
             }
 
-            putToExecutor(task);
+            return putToExecutor(task);
         }
 
         @Override
-        public boolean putToExecutor(T task, List<Object> synchronizers)
+        public DispatchResult putToExecutor(T task, List<Object> synchronizers)
                 throws InterruptedException {
             Objects.requireNonNull(task);
             Objects.requireNonNull(synchronizers);
 
             if (synchronizers.size() == 0) {
-                this.putToExecutor(task);
-                return true;
+                return this.putToExecutor(task);
             }
 
             if (synchronizers.size() == 1) {
-                this.putToExecutor(task, synchronizers.get(0));
-                return true;
+                return this.putToExecutor(task, synchronizers.get(0));
             }
 
             boolean blocked = false;
@@ -289,16 +298,39 @@ public final class MimoDispatcher<T> implements AutoCloseable {
             }
 
             if (blocked) {
-                return false;
+                return DispatchResult.BLOCKED;
             }
 
             if (selectedThread != null) {
+                if (selectedThread.getQueueSize() >= getExecutorQueueMaxTaskSize()) {
+                    return DispatchResult.EXECUTOR_SELECTED_BUSY;
+                }
+                if (selectedThread
+                        .getSynchronizerCount() >= getExecutorQueueMaxSynchronizerSize()) {
+                    return DispatchResult.EXECUTOR_SELECTED_BUSY;
+                }
+
                 selectedThread.put(task);
-                return true;
+
+                return DispatchResult.OK;
             }
 
-            putToExecutor(task);
-            return true;
+            return putToExecutor(task);
+        }
+
+        @Override
+        public int getExecutorCount() {
+            return MimoDispatcher.this.executorThreadList.size();
+        }
+
+        @Override
+        public int getExecutorTaskCount(int executorIndex) {
+            return MimoDispatcher.this.executorThreadList.get(executorIndex).getQueueSize();
+        }
+
+        @Override
+        public int getExecutorSynchronizerCount(int executorIndex) {
+            return MimoDispatcher.this.executorThreadList.get(executorIndex).getSynchronizerCount();
         }
     }
 
@@ -314,6 +346,8 @@ public final class MimoDispatcher<T> implements AutoCloseable {
         private TaskSynchronizerResolver<T> taskSynchronizerResolver;
 
         private TaskExecutor<T> taskExecutor;
+
+        private TaskExecutorSelector taskExecutorSelector;
 
         private int numOfExecutors = Runtime.getRuntime().availableProcessors() * 2;
 
@@ -450,6 +484,23 @@ public final class MimoDispatcher<T> implements AutoCloseable {
         public Builder<T> setExecutorQueueMaxSynchronizerSize(
                 int executorQueueMaxSynchronizerSize) {
             this.executorQueueMaxSynchronizerSize = executorQueueMaxSynchronizerSize;
+            return this;
+        }
+
+        /**
+         * @return the taskExecutorSelector
+         */
+        public TaskExecutorSelector getTaskExecutorSelector() {
+            return taskExecutorSelector;
+        }
+
+        /**
+         * @param taskExecutorSelector
+         *            the taskExecutorSelector to set
+         * @return
+         */
+        public Builder<T> setTaskExecutorSelector(TaskExecutorSelector taskExecutorSelector) {
+            this.taskExecutorSelector = taskExecutorSelector;
             return this;
         }
     }

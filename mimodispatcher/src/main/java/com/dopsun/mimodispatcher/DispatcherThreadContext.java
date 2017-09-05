@@ -53,5 +53,5 @@ public interface DispatcherThreadContext<T> {
      * @return <code>true</code> if this synchronizers are not blocked by more than one executors.
      * @throws InterruptedException
      */
-    boolean putToExecutor(T task, List<Object> synchronizers) throws InterruptedException;
+    DispatchResult putToExecutor(T task, List<Object> synchronizers) throws InterruptedException;
 }

@@ -77,6 +77,13 @@ class ExecutorThread<T> implements AutoCloseable {
     }
 
     /**
+     * @return
+     */
+    public int getSynchronizerCount() {
+        return taskSynchronizers.size();
+    }
+
+    /**
      * @param synchronizer
      * @return
      */

@@ -111,22 +111,28 @@ public class DispatcherThread<T> implements AutoCloseable {
         Map<Object, Long> tempSynchronizers = new ConcurrentHashMap<>();
         List<T> tempBlockingTasks = new ArrayList<>();
 
-        for (T task : blockedTaskQueue) {
+        int bqIndex = 0;
+        while (bqIndex < blockedTaskQueue.size()) {
+            T task = blockedTaskQueue.get(bqIndex);
+
             List<Object> syncList = context.getTaskSynchronizerResolver().apply(task);
 
-            boolean blocked = false;
+            DispatchResult dispatchResult = DispatchResult.OK;
             for (Object sync : syncList) {
                 if (tempSynchronizers.containsKey(sync)) {
-                    blocked = true;
+                    dispatchResult = DispatchResult.BLOCKED;
                     break;
                 }
             }
 
-            if (!blocked) {
-                blocked = !context.putToExecutor(task, syncList);
+            if (dispatchResult != DispatchResult.BLOCKED) {
+                dispatchResult = context.putToExecutor(task, syncList);
             }
 
-            if (blocked) {
+            boolean busyWait = false;
+            switch (dispatchResult) {
+            case BLOCKED:
+            case EXECUTOR_SELECTED_BUSY:
                 for (Object sync : syncList) {
                     tempSynchronizers.compute(sync, (k, v) -> {
                         if (v == null) {
@@ -138,6 +144,19 @@ public class DispatcherThread<T> implements AutoCloseable {
                 }
 
                 tempBlockingTasks.add(task);
+                break;
+            case ALL_EXECUTORS_BUSY:
+                // All executors busy, continue dispatching after busy waiting.
+                busyWait = true;
+                break;
+            default:
+                break;
+            }
+
+            if (busyWait) {
+                Thread.sleep(0);
+            } else {
+                bqIndex += 1;
             }
         }
 
@@ -178,8 +197,8 @@ public class DispatcherThread<T> implements AutoCloseable {
             return;
         }
 
-        boolean eqAdded = context.putToExecutor(task, synchronizers);
-        if (!eqAdded) {
+        DispatchResult result = context.putToExecutor(task, synchronizers);
+        if (DispatchResult.BLOCKED == result) {
             for (Object sync : synchronizers) {
                 blockedTaskSynchronizers.compute(sync, (k, v) -> {
                     if (v == null) {
