@@ -13,6 +13,26 @@ import java.util.List;
  */
 public interface DispatcherThreadContext<T> {
     /**
+     * @return the blockingQueueMaxTaskSize
+     */
+    int getBlockingQueueMaxTaskSize();
+
+    /**
+     * @return the blockingQueueMaxSynchronizerSize
+     */
+    int getBlockingQueueMaxSynchronizerSize();
+
+    /**
+     * @return the executorQueueMaxTaskSize
+     */
+    int getExecutorQueueMaxTaskSize();
+
+    /**
+     * @return the executorQueueMaxSynchronizerSize
+     */
+    int getExecutorQueueMaxSynchronizerSize();
+
+    /**
      * @return
      */
     TaskSynchronizerResolver<T> getTaskSynchronizerResolver();

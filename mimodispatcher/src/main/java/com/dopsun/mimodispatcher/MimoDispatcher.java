@@ -34,6 +34,12 @@ public final class MimoDispatcher<T> implements AutoCloseable {
     private final MimoDispatcherContext context;
     private final MimoDispatcherStatsImpl stats;
 
+    private final int blockingQueueMaxTaskSize;
+    private final int blockingQueueMaxSynchronizerSize;
+
+    private final int executorQueueMaxTaskSize;
+    private final int executorQueueMaxSynchronizerSize;
+
     private final TaskExecutor<T> taskExecutor;
     private final TaskSynchronizerResolver<T> taskSynchronizerResolver;
 
@@ -61,6 +67,11 @@ public final class MimoDispatcher<T> implements AutoCloseable {
         } else {
             this.taskSynchronizerResolver = builder.taskSynchronizerResolver;
         }
+
+        this.blockingQueueMaxTaskSize = builder.blockingQueueMaxTaskSize;
+        this.blockingQueueMaxSynchronizerSize = builder.blockingQueueMaxSynchronizerSize;
+        this.executorQueueMaxTaskSize = builder.executorQueueMaxTaskSize;
+        this.executorQueueMaxSynchronizerSize = builder.executorQueueMaxSynchronizerSize;
 
         this.context = new MimoDispatcherContext();
         this.stats = new MimoDispatcherStatsImpl();
@@ -169,6 +180,26 @@ public final class MimoDispatcher<T> implements AutoCloseable {
 
         private final AtomicBoolean blockingQueueDispatching = new AtomicBoolean(true);
 
+        @Override
+        public int getBlockingQueueMaxSynchronizerSize() {
+            return MimoDispatcher.this.blockingQueueMaxSynchronizerSize;
+        }
+
+        @Override
+        public int getBlockingQueueMaxTaskSize() {
+            return MimoDispatcher.this.blockingQueueMaxTaskSize;
+        }
+
+        @Override
+        public int getExecutorQueueMaxSynchronizerSize() {
+            return MimoDispatcher.this.executorQueueMaxSynchronizerSize;
+        }
+
+        @Override
+        public int getExecutorQueueMaxTaskSize() {
+            return MimoDispatcher.this.executorQueueMaxTaskSize;
+        }
+
         public void notifyBlockingQueueSizeChanged(int newSize) {
             MimoDispatcher.this.stats.notifyBlockingQueueSizeChanged(newSize);
         }
@@ -202,12 +233,12 @@ public final class MimoDispatcher<T> implements AutoCloseable {
             blockingQueueDispatching.set(true);
         }
 
-        public void putToExecutor(T task) throws InterruptedException {
+        private void putToExecutor(T task) throws InterruptedException {
             int executorId = random.nextInt(executorThreadList.size());
             executorThreadList.get(executorId).put(task);
         }
 
-        public void putToExecutor(T task, Object synchronizer) throws InterruptedException {
+        private void putToExecutor(T task, Object synchronizer) throws InterruptedException {
             Objects.requireNonNull(task);
             Objects.requireNonNull(synchronizer);
 
@@ -286,11 +317,11 @@ public final class MimoDispatcher<T> implements AutoCloseable {
 
         private int numOfExecutors = Runtime.getRuntime().availableProcessors() * 2;
 
-        private int blockingQueueMaxTaskSize = -1;
-        private int blockingQueueMaxSynchronzerSize = -1;
+        private int blockingQueueMaxTaskSize = Integer.MAX_VALUE;
+        private int blockingQueueMaxSynchronizerSize = Integer.MAX_VALUE;
 
-        private int executorQueueMaxTaskSize = -1;
-        private int executorQueueMaxSynchronizerSize = -1;
+        private int executorQueueMaxTaskSize = Integer.MAX_VALUE;
+        private int executorQueueMaxSynchronizerSize = Integer.MAX_VALUE;
 
         /**
          * @return a new instance of {@link MimoDispatcher}.
@@ -371,19 +402,19 @@ public final class MimoDispatcher<T> implements AutoCloseable {
         }
 
         /**
-         * @return the blockingQueueMaxSynchronzerSize
+         * @return the blockingQueueMaxSynchronizerSize
          */
-        public int getBlockingQueueMaxSynchronzerSize() {
-            return blockingQueueMaxSynchronzerSize;
+        public int getBlockingQueueMaxSynchronizerSize() {
+            return blockingQueueMaxSynchronizerSize;
         }
 
         /**
-         * @param blockingQueueMaxSynchronzerSize
-         *            the blockingQueueMaxSynchronzerSize to set
+         * @param blockingQueueMaxSynchronizerSize
+         *            the blockingQueueMaxSynchronizerSize to set
          * @return
          */
-        public Builder<T> setBlockingQueueMaxSynchronzerSize(int blockingQueueMaxSynchronzerSize) {
-            this.blockingQueueMaxSynchronzerSize = blockingQueueMaxSynchronzerSize;
+        public Builder<T> setBlockingQueueMaxSynchronzerSize(int blockingQueueMaxSynchronizerSize) {
+            this.blockingQueueMaxSynchronizerSize = blockingQueueMaxSynchronizerSize;
             return this;
         }
 

@@ -86,6 +86,15 @@ public class DispatcherThread<T> implements AutoCloseable {
             dispatchBlockingQueue();
         }
 
+        if (blockedTaskQueue.size() > context.getBlockingQueueMaxTaskSize()) {
+            Thread.sleep(0);
+            return;
+        }
+        if (blockedTaskSynchronizers.size() > context.getBlockingQueueMaxSynchronizerSize()) {
+            Thread.sleep(0);
+            return;
+        }
+
         T task = taskQueue.poll(timeout, unit);
         if (task == null) {
             return;
