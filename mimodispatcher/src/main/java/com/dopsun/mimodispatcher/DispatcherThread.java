@@ -66,7 +66,9 @@ public class DispatcherThread<T> implements AutoCloseable {
      * @throws InterruptedException
      */
     public void put(T task) throws InterruptedException {
-        this.taskQueue.put(task);
+        if (!this.taskQueue.tryTransfer(task)) {
+            this.taskQueue.put(task);
+        }
     }
 
     private void tryDispatchOnce(long timeout, TimeUnit unit) throws InterruptedException {

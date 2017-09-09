@@ -106,7 +106,9 @@ class ExecutorThread<T> implements AutoCloseable {
         }
 
         try {
-            taskQueue.put(task);
+            if (!this.taskQueue.tryTransfer(task)) {
+                taskQueue.put(task);
+            }
 
             context.notifyExecutorQueueSizeChanged(this, taskQueue.size());
         } catch (InterruptedException e) {
