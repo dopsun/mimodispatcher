@@ -27,9 +27,11 @@ A single thread as producer and there is a single thread for consumer. And for d
 | -------- | -------------- |  ---: |
 | MimoDispatcher | n.a.  | 34,343.918  |
 | MimoDispatcher | Thread.sleep(0)  | 26,965.111  |
-| MimoDispatcher | Thread.sleep(1)  | 14.691  |
+| MimoDispatcher | Thread.sleep(1)  | **14.691**  |
 | MimoDispatcher | Thread.sleep(10)  | 1.474  |
 | Executor | n.a.  | 85,970.706  |
 | Executor | Thread.sleep(0)  | 45,649.100  |
-| Executor | Thread.sleep(1)  | 14.518 |
+| Executor | Thread.sleep(1)  | **14.518** |
 | Executor | Thread.sleep(10)  | 1.473 |
+
+* When there is reasonable task duration, for example 1ms or 10ms per task, throughput are very close between ``MimoDispatcher`` and ``Executor``.
